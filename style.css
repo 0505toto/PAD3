@@ -14,12 +14,7 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-    font-family: 'Noto Sans JP', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--primary-text-color);
-    line-height: 1.7;
-}
+body { font-family: 'Noto Sans JP', sans-serif; background-color: var(--bg-color); color: var(--primary-text-color); line-height: 1.7; }
 
 /* ===== ヘッダー ===== */
 .site-header { position: relative; height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; color: white; overflow: hidden; }
@@ -33,35 +28,10 @@ body {
 /* ===== メインコンテンツエリア ===== */
 .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
 section { margin-bottom: 60px; }
-
-/* ===== ★セクションヘッダーとタイトル（改良版） ===== */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /* こちらのボーダーは削除し、h2に統一 */
-}
-h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary-text-color);
-    text-align: left; /* 左揃え */
-    margin-bottom: 25px;
-    padding-bottom: 10px;
-    border-bottom: 3px solid var(--border-color); /* 区切り線をこちらに統一 */
-    width: 100%; /* お気に入りセクションでも線が伸びるように */
-}
-/* お気に入りセクションのh2だけ、幅を自動調整 */
-#favorites .section-header h2 {
-    width: auto;
-    margin-bottom: 0; /* .section-headerで余白を管理 */
-    border-bottom: none; /* .section-headerにボーダーを適用 */
-}
-#favorites .section-header {
-    border-bottom: 3px solid var(--border-color);
-    margin-bottom: 25px;
-    padding-bottom: 10px;
-}
+.section-header { display: flex; justify-content: space-between; align-items: center; }
+h2 { font-size: 2rem; font-weight: 700; color: var(--primary-text-color); text-align: left; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 3px solid var(--border-color); width: 100%; }
+#favorites .section-header h2 { width: auto; margin-bottom: 0; border-bottom: none; }
+#favorites .section-header { border-bottom: 3px solid var(--border-color); margin-bottom: 25px; padding-bottom: 10px; }
 
 /* ===== アニメーション ===== */
 .card, .parallax-section, .full-width-image-section { opacity: 0; transition: transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.6s ease-out; }
@@ -71,6 +41,20 @@ h2 {
 .zoom-in { transform: scale(0.8); }
 .rotate-in { transform: rotate(-10deg) scale(0.8); }
 .visible { opacity: 1; transform: none; }
+
+/* ===== ★★★ グリッドレイアウト（最重要修正箇所） ★★★ ===== */
+.widget-section,
+.card-grid,
+.card-grid-small,
+#favorites-list {
+    display: grid; /* ← この一行が完全に抜け落ちていました！ */
+    gap: 25px;     /* ← カード間の余白もこちらで設定します */
+}
+
+/* 各グリッドの列設定 */
+.widget-section { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.card-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.card-grid-small, #favorites-list { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 
 /* ===== カード基本スタイル ===== */
 .card { background-color: var(--content-bg-color); border-radius: 12px; box-shadow: 0 5px 20px var(--shadow-light); padding: 25px; text-decoration: none; color: var(--primary-text-color); display: flex; flex-direction: column; position: relative; }
@@ -84,12 +68,11 @@ a.card:hover { transform: translateY(-8px) scale(1.03) !important; box-shadow: 0
 .card-icon-small { font-size: 2rem; margin-bottom: 10px; color: var(--accent-color); }
 
 /* ===== ウィジェットのスタイル ===== */
-#weather-widget .card-content { padding-top: 15px; }
+#weather-widget .card-header, #search-widget .card-header { padding-bottom: 15px; }
 .weather-main { display: flex; align-items: center; gap: 15px; font-size: 2.2rem; font-weight: bold; color: var(--accent-color); }
 .weather-main .fa-solid { font-size: 2.8rem; }
 .weather-desc { font-size: 1rem; font-weight: normal; color: var(--secondary-text-color); }
 .weather-sub { margin-top: 10px; text-align: right; color: var(--secondary-text-color); font-size: 0.9rem; }
-
 #google-search-form { display: flex; }
 #google-search-form input { flex-grow: 1; border: 2px solid #ddd; border-radius: 8px 0 0 8px; padding: 12px; font-size: 1rem; outline: none; transition: border-color 0.3s; }
 #google-search-form input:focus { border-color: var(--accent-color); }
@@ -123,10 +106,7 @@ a.card:hover { transform: translateY(-8px) scale(1.03) !important; box-shadow: 0
 .parallax-section::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 30, 60, 0.6); }
 .full-width-image-section { height: 350px; background-image: url('gustavo-zambelli-LJh9ayGO8t8-unsplash.jpg'); background-size: cover; background-position: center; border-radius: 12px; }
 
-/* ===== グリッドとフッター ===== */
-.widget-section { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.card-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.card-grid-small { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+/* ===== フッター ===== */
 .site-footer { text-align: center; padding: 30px 20px; background-color: #343a40; color: rgba(255,255,255,0.7); margin-top: 40px; }
 
 /* ===== レスポンシブ対応 ===== */
