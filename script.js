@@ -1,7 +1,7 @@
 // HTMLドキュメントの読み込みが完了したら、中の処理を実行する
 document.addEventListener('DOMContentLoaded', () => {
 
-    // スクロールアニメーション用のObserverをグローバルに定義
+    // スクロールアニメーション用のObserverを、複数の関数から使えるように定義
     let scrollObserver;
 
     /**
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * ==================================
      */
     const favoritesApp = {
-        // DOM要素の取得
+        // 関連するHTML要素をまとめて取得
         addBtn: document.getElementById('add-favorite-btn'),
         closeBtn: document.getElementById('close-modal-btn'),
         modal: document.getElementById('favorite-modal'),
@@ -19,10 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
         nameInput: document.getElementById('favorite-name'),
         urlInput: document.getElementById('favorite-url'),
         
-        // お気に入りデータを保持する配列
-        favorites: [],
+        favorites: [], // お気に入りデータを保持する配列
 
-        // 初期化処理
+        // アプリケーションの初期化
         init() {
             this.addEventListeners();
             this.loadFavorites();
@@ -33,66 +32,65 @@ document.addEventListener('DOMContentLoaded', () => {
             this.addBtn.addEventListener('click', () => this.toggleModal(true));
             this.closeBtn.addEventListener('click', () => this.toggleModal(false));
             this.modal.addEventListener('click', (e) => {
-                // モーダルの外側をクリックしたら閉じる
-                if (e.target === this.modal) {
-                    this.toggleModal(false);
-                }
+                if (e.target === this.modal) this.toggleModal(false);
             });
             this.form.addEventListener('submit', (e) => this.addFavorite(e));
         },
 
-        // モーダルの表示/非表示を切り替え
+        // ポップアップ画面（モーダル）の表示/非表示
         toggleModal(show) {
             this.modal.style.display = show ? 'flex' : 'none';
-            if(show) this.nameInput.focus();
+            if (show) this.nameInput.focus(); // 表示時に自動で入力欄にカーソルを合わせる
         },
 
-        // ローカルストレージからお気に入りを読み込む
+        // ブラウザのLocalStorageからお気に入りを読み込む
         loadFavorites() {
-            this.favorites = JSON.parse(localStorage.getItem('portalFavorites')) || [];
+            // 'portalFavoritesV2' という名前でデータを保存・読込
+            this.favorites = JSON.parse(localStorage.getItem('portalFavoritesV2')) || [];
             this.renderFavorites();
         },
 
-        // ローカルストレージにお気に入りを保存する
+        // LocalStorageにお気に入りを保存する
         saveFavorites() {
-            localStorage.setItem('portalFavorites', JSON.stringify(this.favorites));
+            localStorage.setItem('portalFavoritesV2', JSON.stringify(this.favorites));
         },
 
-        // お気に入りを画面に描画する
+        // お気に入りデータを元に、画面のリストを再描画する
         renderFavorites() {
-            this.list.innerHTML = ''; // 一旦リストを空にする
+            this.list.innerHTML = ''; // リストを一旦空にする
             this.favorites.forEach(fav => {
                 const favElement = this.createFavoriteElement(fav);
                 this.list.appendChild(favElement);
-                // ★新しく作られた要素をスクロールアニメーションの監視対象に追加
+                // 新しく作られたカードをスクロールアニメーションの監視対象に追加
                 if (scrollObserver) {
                     scrollObserver.observe(favElement);
                 }
             });
         },
         
-        // お気に入りを追加する処理
+        // フォーム送信時にお気に入りを追加する処理
         addFavorite(event) {
-            event.preventDefault();
+            event.preventDefault(); // フォームのデフォルト送信をキャンセル
             const name = this.nameInput.value.trim();
             const url = this.urlInput.value.trim();
 
             if (name && url) {
                 const newFavorite = {
-                    id: Date.now(), // ユニークなIDとしてタイムスタンプを使用
+                    id: Date.now(), // 削除処理のためにユニークなIDを付与
                     name: name,
                     url: url
                 };
                 this.favorites.push(newFavorite);
                 this.saveFavorites();
-                this.renderFavorites(); // 再描画
+                this.renderFavorites();
                 this.form.reset();
                 this.toggleModal(false);
             }
         },
 
-        // お気に入りを削除する処理
+        // IDを指定してお気に入りを削除する処理
         deleteFavorite(id) {
+            // 削除前に確認ダイアログを表示
             if (confirm('このお気に入りを削除しますか？')) {
                 this.favorites = this.favorites.filter(fav => fav.id !== id);
                 this.saveFavorites();
@@ -100,16 +98,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
 
-        // お気に入り要素のHTMLを生成
+        // お気に入りカードのHTML要素を生成する
         createFavoriteElement(fav) {
             const a = document.createElement('a');
             a.href = fav.url;
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
-            a.className = 'card favorite-card'; // アニメーション用のクラス
-            a.dataset.id = fav.id; // データ属性にIDを保持
+            a.className = 'card favorite-card'; // CSSとアニメーション用のクラス
+            a.dataset.id = fav.id;
 
-            // アイコン、名前、削除ボタンを中に入れる
             a.innerHTML = `
                 <i class="fa-solid fa-link card-icon-small"></i>
                 <h4>${this.escapeHTML(fav.name)}</h4>
@@ -118,18 +115,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
             
-            // 削除ボタンのイベントリスナー
+            // 削除ボタンがクリックされた時の処理
             const deleteBtn = a.querySelector('.button-delete');
             deleteBtn.addEventListener('click', (e) => {
-                e.preventDefault(); // リンクへ飛ばないようにする
-                e.stopPropagation(); // 親要素へのイベント伝播を止める
+                e.preventDefault();  // リンク先への移動をキャンセル
+                e.stopPropagation(); // 親要素（カード自体）のクリックイベントをキャンセル
                 this.deleteFavorite(fav.id);
             });
 
             return a;
         },
 
-        // XSS対策でHTMLエスケープ
+        // 簡単なXSS対策（入力されたHTMLタグを無効化）
         escapeHTML(str) {
             const p = document.createElement('p');
             p.textContent = str;
@@ -137,19 +134,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    // お気に入りアプリを初期化
-    favoritesApp.init();
-
 
     /**
      * ==================================
-     * 機能2: 天気予報ウィジェット (変更なし)
+     * 機能2: 天気予報ウィジェット
      * ==================================
      */
-    const fetchWeather = async () => { /* ...前回のコードと同じ... */ };
-    (async function(){
+    const fetchWeather = async () => {
         const weatherWidget = document.getElementById('weather-info');
-        if (!weatherWidget) return; 
+        if (!weatherWidget) return;
         const apiUrl = 'https://wttr.in/Osaka?format=j1';
         try {
             const response = await fetch(apiUrl);
@@ -170,26 +163,25 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             weatherWidget.innerHTML = '<p>天気情報を取得できませんでした。</p>';
         }
-    })();
+    };
 
 
     /**
      * ==================================
-     * 機能3: スクロールアニメーション (強化版)
+     * 機能3: スクロールアニメーション
      * ==================================
      */
     const setupScrollAnimations = () => {
-        const animatedElements = document.querySelectorAll('.card, .parallax-section, .full-width-image-section');
+        const animatedElements = document.querySelectorAll('.card');
         if (animatedElements.length === 0) return;
         
-        // ★アニメーションパターンを追加
-        const animationPatterns = ['fade-in-up', 'fade-in-left', 'fade-in-right', 'zoom-in', 'rotate-in'];
+        const animationPatterns = ['fade-in-up', 'zoom-in', 'fade-in-left', 'fade-in-right'];
 
         scrollObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    // お気に入りカードは再描画される可能性があるので監視を解除しない
+                    // お気に入りカードは動的に増減するため、監視を止めない
                     if (!entry.target.classList.contains('favorite-card')) {
                         scrollObserver.unobserve(entry.target);
                     }
@@ -198,68 +190,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { threshold: 0.1 });
 
         animatedElements.forEach(el => {
-             // 既存のカードにランダムなアニメーションクラスを割り当て
-            const pattern = animationPatterns[Math.floor(Math.random() * animationPatterns.length)];
-            el.classList.add(pattern);
-            scrollObserver.observe(el);
+            if (!el.classList.contains('favorite-card')) {
+                const pattern = animationPatterns[Math.floor(Math.random() * animationPatterns.length)];
+                el.classList.add(pattern);
+                scrollObserver.observe(el);
+            }
         });
     };
 
-
     /**
      * ==================================
-     * 機能4: パララックス効果 (変更なし)
+     * 機能4: パーティクルエフェクト (PAD2の背景)
      * ==================================
      */
-    const setupParallax = () => { /* ...前回のコードと同じ... */ };
-    (function(){
-        const parallaxSection = document.querySelector('.parallax-section');
-        if (!parallaxSection) return;
-        window.addEventListener('scroll', () => {
-            window.requestAnimationFrame(() => {
-                const rect = parallaxSection.getBoundingClientRect();
-                if (rect.top < window.innerHeight && rect.bottom > 0) {
-                    const speed = -0.3;
-                    const yPos = rect.top * speed;
-                    parallaxSection.style.backgroundPosition = `center ${yPos}px`;
-                }
+    const setupParticles = () => {
+        // `particlesJS` という関数がライブラリによって提供される想定
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', {
+                "particles": { "number": { "value": 60, "density": { "enable": true, "value_area": 800 } }, "color": { "value": "#ffffff" }, "shape": { "type": "circle" }, "opacity": { "value": 0.5, "random": true }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.4, "width": 1 }, "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out" } },
+                "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": true, "mode": "repulse" }, "onclick": { "enable": true, "mode": "push" } } },
+                "retina_detect": true
             });
-        });
-    })();
-
-    /**
-     * ==================================
-     * ★ 機能5: マウス追従エフェクト
-     * ==================================
-     */
-    const setupMouseMoveEffect = () => {
-        const headerContent = document.querySelector('.header-content');
-        if(!headerContent) return;
-
-        window.addEventListener('mousemove', (e) => {
-            const { clientX, clientY } = e;
-            const { innerWidth, innerHeight } = window;
-
-            // 画面の中心を0とした座標に変換
-            const x = (clientX - innerWidth / 2) / (innerWidth / 2);
-            const y = (clientY - innerHeight / 2) / (innerHeight / 2);
-            
-            // 回転の最大値を設定
-            const maxRotate = 5; // 5度
-
-            // requestAnimationFrameでスムーズに
-            window.requestAnimationFrame(() => {
-                headerContent.style.transform = `rotateY(${x * maxRotate}deg) rotateX(${-y * maxRotate}deg)`;
-                headerContent.style.transition = 'transform 0.1s ease-out';
-            });
-        });
+        } else {
+            console.error('particles.js is not loaded. Please include it in your HTML.');
+        }
     };
-
-
+    
     // ==================================
     // 各機能の初期化・実行
     // ==================================
+    fetchWeather();
     setupScrollAnimations();
-    setupMouseMoveEffect();
+    favoritesApp.init(); // お気に入りアプリの実行
+    setupParticles(); // パーティクルエフェクトの実行
 
 });
